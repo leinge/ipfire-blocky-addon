@@ -1,0 +1,35 @@
+diff --git a/make.sh b/make.sh
+index 3963bc9..6e7dc8b 100755
+--- a/make.sh
++++ b/make.sh
+@@ -2035,6 +2035,7 @@ build_system() {
+ 	lfsmake2 haproxy
+ 	lfsmake2 ipset
+ 	lfsmake2 dnsdist
++	lfsmake2 blocky
+ 	lfsmake2 bird
+ 	lfsmake2 libyang
+ 	lfsmake2 abseil-cpp
+diff --git a/src/misc-progs/Makefile b/src/misc-progs/Makefile
+index 6229c8b..eee094f 100644
+--- a/src/misc-progs/Makefile
++++ b/src/misc-progs/Makefile
+@@ -33,6 +33,7 @@ SUID_PROGS = squidctrl sshctrl ipfirereboot \
+ 	setaliases urlfilterctrl updxlratorctrl fireinfoctrl rebuildroutes \
+ 	getconntracktable wirelessclient torctrl ddnsctrl \
+ 	captivectrl wireguardctrl lldpdctrl dnsctrl
++SUID_PROGS += blockyctrl
+ 
+ OBJS = $(patsubst %,%.o,$(PROGS) $(SUID_PROGS))
+ 
+diff --git a/config/rootfiles/common/misc-progs b/config/rootfiles/common/misc-progs
+index 94d213e..0036acc 100644
+--- a/config/rootfiles/common/misc-progs
++++ b/config/rootfiles/common/misc-progs
+@@ -1,5 +1,6 @@
+ usr/local/bin/addonctrl
+ usr/local/bin/backupctrl
++#usr/local/bin/blockyctrl
+ usr/local/bin/captivectrl
+ #usr/local/bin/clamavctrl
+ usr/local/bin/collectdctrl

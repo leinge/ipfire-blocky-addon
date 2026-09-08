@@ -1,0 +1,15 @@
+{
+  "ports": {
+    "dns": "127.0.0.1:1053"
+  },
+  "queryLog": {
+    "type": "none"
+  },
+  "upstreams": {
+    "groups": {
+      "default": [
+        "127.0.0.1"
+      ]
+    }
+  }
+}

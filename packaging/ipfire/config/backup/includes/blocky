@@ -1,0 +1,3 @@
+/etc/blocky
+/var/ipfire/blocky/config.json
+/var/ipfire/blocky/settings.json

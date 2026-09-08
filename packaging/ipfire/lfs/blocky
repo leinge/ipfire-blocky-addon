@@ -1,0 +1,142 @@
+###############################################################################
+#                                                                             #
+# IPFire.org - A linux based firewall                                         #
+# Copyright (C) 2026  IPFire Team                                             #
+#                                                                             #
+# This program is free software: you can redistribute it and/or modify        #
+# it under the terms of the GNU General Public License as published by        #
+# the Free Software Foundation, either version 3 of the License, or           #
+# (at your option) any later version.                                         #
+#                                                                             #
+###############################################################################
+
+###############################################################################
+# Definitions
+###############################################################################
+
+include Config
+
+SUMMARY    = Fast and configurable DNS proxy and ad blocker
+
+VER        = 0.35.0
+SUP_ARCH   = aarch64 x86_64
+
+ifeq "$(BUILD_ARCH)" "aarch64"
+BLOCKY_ARCH = arm64
+else
+BLOCKY_ARCH = x86_64
+endif
+
+THISAPP    = blocky_v$(VER)_Linux_$(BLOCKY_ARCH)
+DL_FILE    = $(THISAPP).tar.gz
+DL_FROM    = https://github.com/0xERR0R/blocky/releases/download/v$(VER)
+DIR_APP    = $(DIR_SRC)/$(THISAPP)
+TARGET     = $(DIR_INFO)/$(THISAPP)
+PROG       = blocky
+PAK_VER    = 1
+
+DEPS       =
+SERVICES   = blocky
+
+###############################################################################
+# Top-level Rules
+###############################################################################
+
+objects = $(DL_FILE)
+
+$(DL_FILE) = $(DL_FROM)/$(DL_FILE)
+
+ifeq "$(BUILD_ARCH)" "aarch64"
+$(DL_FILE)_BLAKE2 = 525bf8b76803af0ded29729028c5111cc39578d7d76d485efdf882d5427dc885f5eef81721fb7c41859c448921ca10b5d21217189bdb561f608b61ce857b8774
+else
+$(DL_FILE)_BLAKE2 = 89945953df7466e977517288c4824d77c3ef1adaf128caebd964233dd8f40fa812813a9622e9c27e6f13839369d3ab20e61dc35c53dd6059b39f155d5d1d5449
+endif
+
+install : $(TARGET)
+
+check : $(patsubst %,$(DIR_CHK)/%,$(objects))
+
+download : $(patsubst %,$(DIR_DL)/%,$(objects))
+
+b2 : $(subst %,%_BLAKE2,$(objects))
+
+dist:
+	@$(PAK)
+
+###############################################################################
+# Downloading, checking, b2sum
+###############################################################################
+
+$(patsubst %,$(DIR_CHK)/%,$(objects)) :
+	@$(CHECK)
+
+$(patsubst %,$(DIR_DL)/%,$(objects)) :
+	@$(LOAD)
+
+$(subst %,%_BLAKE2,$(objects)) :
+	@$(B2SUM)
+
+###############################################################################
+# Installation Details
+###############################################################################
+
+$(TARGET) : $(patsubst %,$(DIR_DL)/%,$(objects))
+	@$(PREBUILD)
+	@rm -rf $(DIR_APP) && mkdir -pv $(DIR_APP)
+	cd $(DIR_APP) && tar axf $(DIR_DL)/$(DL_FILE)
+	test "$$($(DIR_APP)/blocky version | awk '/^Version:/ { print $$2 }')" = "v$(VER)"
+	file $(DIR_APP)/blocky | grep -q 'statically linked'
+ifeq "$(BUILD_ARCH)" "aarch64"
+	readelf -h $(DIR_APP)/blocky | grep -q 'Machine:.*AArch64'
+else
+	readelf -h $(DIR_APP)/blocky | grep -q 'Machine:.*X86-64'
+endif
+
+	# Runtime binary and license.
+	install -v -m 755 $(DIR_APP)/blocky /usr/bin/blocky
+	cmp $(DIR_APP)/LICENSE $(DIR_SRC)/config/blocky/LICENSE.blocky
+	install -v -D -m 644 $(DIR_SRC)/config/blocky/LICENSE.blocky /usr/share/licenses/blocky/LICENSE
+
+	# Version-pinned schema, defaults, UI descriptor and provider policy.
+	mkdir -pv /usr/share/blocky
+	install -v -m 644 $(DIR_SRC)/config/blocky/config.schema.json /usr/share/blocky/config.schema.json
+	install -v -m 644 $(DIR_SRC)/config/blocky/default-config.json /usr/share/blocky/default-config.json
+	install -v -m 644 $(DIR_SRC)/config/blocky/default-settings.json /usr/share/blocky/default-settings.json
+	install -v -m 644 $(DIR_SRC)/config/blocky/ui-descriptor.json /usr/share/blocky/ui-descriptor.json
+	install -v -m 644 $(DIR_SRC)/config/blocky/doh-providers.json /usr/share/blocky/doh-providers.json
+
+	# Root-owned management plane.
+	mkdir -pv /usr/lib/blocky
+	install -v -m 644 $(DIR_SRC)/src/blocky/blocky_manager.py /usr/lib/blocky/blocky_manager.py
+	install -v -m 755 $(DIR_SRC)/src/blocky/blocky-manager /usr/lib/blocky/blocky-manager
+	install -v -m 755 $(DIR_SRC)/src/blocky/blocky-firewall /usr/lib/blocky/blocky-firewall
+	install -v -m 700 $(DIR_SRC)/src/blocky/blocky-recovery /usr/sbin/blocky-recovery
+
+	# blockyctrl is built and installed by the patched misc-progs target. Its
+	# common rootfile entry is commented so this add-on's rootfile owns it.
+	test -x /usr/local/bin/blockyctrl
+
+	# Native IPFire Web UI.
+	install -v -D -m 755 $(DIR_SRC)/html/cgi-bin/blocky.cgi /srv/web/ipfire/cgi-bin/blocky.cgi
+	install -v -D -m 644 $(DIR_SRC)/html/html/include/blocky.js /srv/web/ipfire/html/include/blocky.js
+	install -v -D -m 644 $(DIR_SRC)/config/menu/EX-blocky.menu /var/ipfire/menu.d/EX-blocky.menu
+	install -v -D -m 644 $(DIR_SRC)/config/blocky/blocky.en.pl /var/ipfire/addon-lang/blocky.en.pl
+
+	# Inert active state. Pakfire install creates the service identity and fixes ownership.
+	mkdir -pv /etc/blocky /var/ipfire/blocky/pending /var/lib/blocky /var/cache/blocky/lists /var/log/blocky
+	install -v -m 640 $(DIR_SRC)/config/blocky/default-config.json /var/ipfire/blocky/config.json
+	install -v -m 640 $(DIR_SRC)/config/blocky/default-settings.json /var/ipfire/blocky/settings.json
+	install -v -m 640 $(DIR_SRC)/config/blocky/default-status.json /var/ipfire/blocky/status.json
+	install -v -m 640 $(DIR_SRC)/config/blocky/default-runtime.yml /etc/blocky/config.yml
+	install -v -m 600 $(DIR_SRC)/config/blocky/default-enforcement.json /var/lib/blocky/enforcement.json
+
+	# Init, disabled boot link, shutdown links, and backup manifest.
+	$(call INSTALL_INITSCRIPTS,$(SERVICES))
+	mkdir -pv /etc/rc.d/rc3.d/off
+	ln -svf ../../init.d/blocky /etc/rc.d/rc3.d/off/S50blocky
+	ln -svf ../init.d/blocky /etc/rc.d/rc0.d/K50blocky
+	ln -svf ../init.d/blocky /etc/rc.d/rc6.d/K50blocky
+	install -v -D -m 644 $(DIR_SRC)/config/backup/includes/blocky /var/ipfire/backup/addons/includes/blocky
+
+	@rm -rf $(DIR_APP)
+	@$(POSTBUILD)

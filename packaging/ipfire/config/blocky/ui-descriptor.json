@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "managed": [
+    "ports.dns"
+  ],
+  "sensitive": [
+    "redis.password",
+    "redis.sentinelPassword",
+    "queryLog.target"
+  ],
+  "sections": [
+    {
+      "id": "upstreams",
+      "title": "Upstreams",
+      "properties": ["upstreams", "connectIPVersion", "bootstrapDns"]
+    },
+    {
+      "id": "local-dns",
+      "title": "Local DNS",
+      "properties": ["customDNS", "conditional", "hostsFile"]
+    },
+    {
+      "id": "blocking",
+      "title": "Blocking",
+      "properties": ["blocking"]
+    },
+    {
+      "id": "clients",
+      "title": "Clients",
+      "properties": ["clientLookup"]
+    },
+    {
+      "id": "cache-state",
+      "title": "Cache and shared state",
+      "properties": ["caching", "redis"]
+    },
+    {
+      "id": "logging",
+      "title": "Logging and telemetry",
+      "properties": ["log", "queryLog", "prometheus", "statistics"]
+    },
+    {
+      "id": "listeners",
+      "title": "Listeners and TLS",
+      "properties": ["ports", "minTlsServeVersion", "certFile", "keyFile", "http3"]
+    },
+    {
+      "id": "resolver-policy",
+      "title": "Resolver policy",
+      "properties": ["fqdnOnly", "filtering", "ede", "specialUseDomains", "rebindingProtection", "rateLimit", "ecs", "dnssec", "dns64"]
+    }
+  ]
+}

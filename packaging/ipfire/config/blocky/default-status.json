@@ -1,0 +1,14 @@
+{
+  "bootEnabled": false,
+  "bypassZones": [],
+  "enforcedDown": false,
+  "enforcementActive": false,
+  "healthy": false,
+  "message": "Blocky is installed but not enabled",
+  "pid": "",
+  "routedZones": [],
+  "running": false,
+  "schemaVersion": 1,
+  "selectedZones": [],
+  "user": "blocky"
+}

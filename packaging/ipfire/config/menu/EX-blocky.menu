@@ -1,0 +1,6 @@
+$subipfire->{'55.blocky'} = {
+	'caption' => 'Blocky',
+	'uri' => '/cgi-bin/blocky.cgi',
+	'title' => 'Blocky DNS proxy and filtering',
+	'enabled' => 1,
+};
