@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ "$(id -u)" -ne 0 ]; then
+	echo "blocky-recovery must be run as root from the local console." >&2
+	exit 1
+fi
+
+exec /usr/lib/blocky/blocky-manager recover
