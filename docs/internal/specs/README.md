@@ -6,7 +6,8 @@ the project workflow.
 
 | ID | Title | Status | Canonical location | Planned archive |
 | --- | --- | --- | --- | --- |
-| SPEC-0001 | Initial IPFire Blocky add-on | Ready for implementation | [`spec.md`](../../../spec.md) | `0001-initial-ipfire-blocky-addon.md` |
+| SPEC-0001 | Initial IPFire Blocky add-on | Implemented | [`0001-initial-ipfire-blocky-addon.md`](0001-initial-ipfire-blocky-addon.md) | — |
+| SPEC-0002 | CI-built IPFire packages and GitHub Releases | Ready for implementation | [`spec.md`](../../../spec.md) | `0002-ci-built-ipfire-packages-and-github-releases.md` |
 
 ## Lifecycle
 
