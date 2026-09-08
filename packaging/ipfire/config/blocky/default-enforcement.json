@@ -1,0 +1,7 @@
+{
+  "active": false,
+  "dohExceptIPv4": [],
+  "dohIPv4": [],
+  "schemaVersion": 1,
+  "zones": {}
+}

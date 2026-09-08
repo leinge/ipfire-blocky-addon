@@ -1,0 +1,55 @@
+#!/bin/sh
+###############################################################################
+#                                                                             #
+# IPFire.org - A linux based firewall                                         #
+# Copyright (C) 2026  IPFire Team                                             #
+#                                                                             #
+# This program is free software: you can redistribute it and/or modify        #
+# it under the terms of the GNU General Public License as published by        #
+# the Free Software Foundation, either version 3 of the License, or           #
+# (at your option) any later version.                                         #
+#                                                                             #
+###############################################################################
+
+. /etc/sysconfig/rc
+. ${rc_functions}
+
+CONFIG="/etc/blocky/config.yml"
+
+check_config() {
+	if ! /usr/sbin/runuser -u blocky -- /usr/bin/blocky --config "${CONFIG}" validate >/dev/null 2>&1; then
+		boot_mesg "Blocky configuration contains errors" "${FAILURE}"
+		echo_failure
+		return 1
+	fi
+}
+
+case "${1}" in
+	start)
+		check_config || exit 1
+		boot_mesg "Starting Blocky DNS proxy..."
+		ulimit -n 65536
+		loadproc -u blocky -b -f /usr/bin/blocky --config "${CONFIG}"
+		;;
+	stop)
+		boot_mesg "Stopping Blocky DNS proxy..."
+		killproc /usr/bin/blocky
+		;;
+	reload)
+		boot_mesg "Blocky cannot reload configuration; restarting..."
+		"${0}" restart
+		;;
+	restart)
+		check_config || exit 1
+		"${0}" stop
+		sleep 1
+		"${0}" start
+		;;
+	status)
+		statusproc /usr/bin/blocky
+		;;
+	*)
+		echo "Usage: ${0} {start|stop|reload|restart|status}"
+		exit 1
+		;;
+esac

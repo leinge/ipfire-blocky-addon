@@ -1,0 +1,46 @@
+#!/bin/sh
+set -eu
+
+usage() {
+	echo "Usage: $0 [--check] /path/to/ipfire-2.x" >&2
+	exit 2
+}
+
+check_only=false
+if [ "${1:-}" = "--check" ]; then
+	check_only=true
+	shift
+fi
+
+[ "$#" -eq 1 ] || usage
+target=$1
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+overlay="$repo_root/packaging/ipfire"
+
+[ -f "$target/make.sh" ] || { echo "Not an IPFire 2.x checkout: $target" >&2; exit 1; }
+[ -f "$target/src/misc-progs/Makefile" ] || { echo "Missing IPFire misc-progs Makefile" >&2; exit 1; }
+expected_commit=$(sed -n '1p' "$overlay/IPFIRE_BASELINE")
+actual_commit=$(git -C "$target" rev-parse HEAD)
+[ "$actual_commit" = "$expected_commit" ] || {
+	echo "IPFire checkout is $actual_commit; expected pinned baseline $expected_commit" >&2
+	exit 1
+}
+
+for patch in "$overlay"/patches/*.patch; do
+	git -C "$target" apply --check "$patch"
+done
+
+if [ "$check_only" = true ]; then
+	find "$overlay" -type f ! -path '*/patches/*' -print | sort >/dev/null
+	echo "IPFire overlay and registration patches are applicable."
+	exit 0
+fi
+
+for directory in config html lfs src; do
+	cp -a "$overlay/$directory/." "$target/$directory/"
+done
+for patch in "$overlay"/patches/*.patch; do
+	git -C "$target" apply "$patch"
+done
+
+echo "Staged Blocky add-on into $target"

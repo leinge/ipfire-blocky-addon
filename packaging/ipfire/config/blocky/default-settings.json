@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "zones": {
+    "blue": {
+      "bypass": false,
+      "route": false,
+      "selected": false
+    },
+    "green": {
+      "bypass": false,
+      "route": false,
+      "selected": false
+    }
+  },
+  "doh": {
+    "providers": [],
+    "customDomains": [],
+    "customIPv4": [],
+    "exceptDomains": [],
+    "exceptIPv4": []
+  }
+}
